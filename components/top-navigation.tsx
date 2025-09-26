@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Wallet, Receipt, Banknote, FileText, ArrowLeftRight } from "lucide-react"
+import { Wallet, Receipt, FileText, ArrowLeftRight, Users } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { useState, useEffect } from "react"
@@ -22,7 +22,10 @@ export function TopNavigation() {
     setLanguage(detectLanguage())
   }, [])
 
-  const navItems = [{ name: "Convert Crypto", href: "/convert", icon: <Banknote className="mr-2 h-4 w-4" /> }]
+  const navItems = [
+    { name: "P2P Marketplace", href: "/p2p", icon: <Users className="mr-2 h-4 w-4" /> },
+    { name: "Swap", href: "/swap", icon: <ArrowLeftRight className="mr-2 h-4 w-4" /> },
+  ]
 
   // Pay Utility Bill trigger
   const payUtilityTrigger = (
@@ -93,20 +96,6 @@ export function TopNavigation() {
 
             {/* Digi Pay - now with click functionality */}
             {digiPayTrigger}
-
-            {/* Swap button positioned between Digi Pay and Connect Wallet */}
-            <Link
-              href="/swap"
-              className={cn(
-                "text-sm font-medium transition-all duration-300 px-4 py-1.5 rounded-md border flex items-center hover:shadow-md transform hover:scale-105",
-                pathname === "/swap" || pathname.startsWith("/swap/")
-                  ? "text-white bg-primary border-primary shadow-lg"
-                  : "text-gray-600 border-gray-200 hover:border-primary hover:text-primary hover:bg-primary/5",
-              )}
-            >
-              <ArrowLeftRight className="mr-2 h-4 w-4" />
-              Swap
-            </Link>
           </div>
         </nav>
 
@@ -192,18 +181,6 @@ export function TopNavigation() {
           <FileText className="mr-2 h-4 w-4" />
           Digi Pay
         </button>
-        <Link
-          href="/swap"
-          className={cn(
-            "text-sm font-medium transition-all duration-300 whitespace-nowrap px-3 py-1.5 rounded-md border mx-1 flex items-center hover:shadow-md transform hover:scale-105",
-            pathname === "/swap" || pathname.startsWith("/swap/")
-              ? "bg-primary text-white border-primary shadow-lg"
-              : "text-gray-600 border-gray-200 hover:border-primary hover:bg-primary/5",
-          )}
-        >
-          <ArrowLeftRight className="mr-2 h-4 w-4" />
-          Swap
-        </Link>
       </div>
     </div>
   )
