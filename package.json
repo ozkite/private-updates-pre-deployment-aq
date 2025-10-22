@@ -49,7 +49,7 @@
     "date-fns": "latest",
     "ethers": "latest",
     "lucide-react": "^0.454.0",
-    "next": "14.2.16",
+    "next": "14.0.4",
     "next-themes": "^0.2.1",
     "permissionless": "latest",
     "react": "^18",
