@@ -23,10 +23,10 @@ export default function SwapPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       <TopNavigation />
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8 flex-1">
         <div className="max-w-2xl mx-auto">
           {/* Header */}
           <div className="text-center mb-8">
@@ -111,7 +111,7 @@ export default function SwapPage() {
         </div>
       </main>
 
-      <AppFooter />
+      <AppFooter language={language} />
     </div>
   )
 }

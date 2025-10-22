@@ -1,14 +1,15 @@
 "use client"
 
 import { useState } from "react"
-import { Search, ChevronDown, Filter, TrendingUp, Users, DollarSign } from "lucide-react"
+import { TopNavigation } from "@/components/top-navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+import { Label } from "@/components/ui/label"
+import { Search, ChevronDown } from "lucide-react"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { CryptoSelectorModal } from "@/components/crypto-selector-modal"
 
+// P2P Offer type
 interface P2POffer {
   id: string
   trader: string
@@ -16,31 +17,36 @@ interface P2POffer {
   completionRate: number
   orderCount: number
   status: string
-  price: number
-  available: number
-  limit: string
+  price: string
+  available: string
+  limits: string
   paymentMethods: string[]
 }
 
 export default function P2PSellPage() {
-  const [selectedCrypto, setSelectedCrypto] = useState("USDT")
+  const [selectedCrypto, setSelectedCrypto] = useState({
+    symbol: "USDT",
+    name: "Tether",
+    logo: "https://cryptologos.cc/logos/tether-usdt-logo.png",
+  })
   const [selectedFiat, setSelectedFiat] = useState("MXN")
+  const [selectedPayment, setSelectedPayment] = useState("All payments")
   const [amount, setAmount] = useState("")
-  const [searchQuery, setSearchQuery] = useState("")
-  const [showCryptoModal, setShowCryptoModal] = useState(false)
+  const [isCryptoModalOpen, setIsCryptoModalOpen] = useState(false)
 
+  // Mock P2P offers data with 10 specific advertisers
   const offers: P2POffer[] = [
     {
       id: "1",
       trader: "DigiMSwaper",
       initials: "DS",
       completionRate: 98.5,
-      orderCount: 1247,
-      status: "Online",
-      price: 20.15,
-      available: 50000,
-      limit: "500 - 10,000",
-      paymentMethods: ["SPEI", "Banco Azteca", "BBVA"],
+      orderCount: 1234,
+      status: "online",
+      price: "20.45",
+      available: "50,000",
+      limits: "500 - 10,000",
+      paymentMethods: ["SPEI", "OXXO"],
     },
     {
       id: "2",
@@ -48,23 +54,23 @@ export default function P2PSellPage() {
       initials: "BI",
       completionRate: 99.2,
       orderCount: 2156,
-      status: "Online",
-      price: 20.12,
-      available: 75000,
-      limit: "1,000 - 25,000",
-      paymentMethods: ["SPEI", "Santander", "Banamex"],
+      status: "online",
+      price: "20.43",
+      available: "75,000",
+      limits: "1,000 - 15,000",
+      paymentMethods: ["SPEI", "Banco"],
     },
     {
       id: "3",
       trader: "CryptoColor",
       initials: "CC",
       completionRate: 97.8,
-      orderCount: 892,
-      status: "Online",
-      price: 20.18,
-      available: 30000,
-      limit: "300 - 8,000",
-      paymentMethods: ["SPEI", "BBVA", "Scotiabank"],
+      orderCount: 891,
+      status: "online",
+      price: "20.47",
+      available: "30,000",
+      limits: "500 - 8,000",
+      paymentMethods: ["OXXO", "7-Eleven"],
     },
     {
       id: "4",
@@ -72,301 +78,296 @@ export default function P2PSellPage() {
       initials: "IS",
       completionRate: 99.5,
       orderCount: 3421,
-      status: "Online",
-      price: 20.1,
-      available: 100000,
-      limit: "2,000 - 50,000",
-      paymentMethods: ["SPEI", "Banco Azteca", "Santander", "BBVA"],
+      status: "online",
+      price: "20.42",
+      available: "100,000",
+      limits: "2,000 - 25,000",
+      paymentMethods: ["SPEI", "OXXO", "Banco"],
     },
     {
       id: "5",
       trader: "StableStation",
       initials: "SS",
-      completionRate: 96.7,
-      orderCount: 654,
-      status: "Online",
-      price: 20.2,
-      available: 25000,
-      limit: "200 - 5,000",
-      paymentMethods: ["SPEI", "Banamex"],
+      completionRate: 96.9,
+      orderCount: 567,
+      status: "online",
+      price: "20.48",
+      available: "25,000",
+      limits: "500 - 5,000",
+      paymentMethods: ["OXXO"],
     },
     {
       id: "6",
       trader: "OldBlocks",
       initials: "OB",
-      completionRate: 98.9,
+      completionRate: 98.1,
       orderCount: 1876,
-      status: "Online",
-      price: 20.13,
-      available: 60000,
-      limit: "800 - 15,000",
-      paymentMethods: ["SPEI", "BBVA", "Santander", "Scotiabank"],
+      status: "online",
+      price: "20.44",
+      available: "60,000",
+      limits: "1,000 - 12,000",
+      paymentMethods: ["SPEI", "Banco"],
     },
     {
       id: "7",
       trader: "MarketPool",
       initials: "MP",
-      completionRate: 97.5,
-      orderCount: 1123,
-      status: "Online",
-      price: 20.16,
-      available: 45000,
-      limit: "600 - 12,000",
-      paymentMethods: ["SPEI", "Banco Azteca", "Banamex"],
+      completionRate: 99.0,
+      orderCount: 2789,
+      status: "online",
+      price: "20.43",
+      available: "85,000",
+      limits: "1,500 - 20,000",
+      paymentMethods: ["SPEI", "OXXO", "7-Eleven"],
     },
     {
       id: "8",
       trader: "StableBasket",
       initials: "SB",
-      completionRate: 99.8,
-      orderCount: 4532,
-      status: "Online",
-      price: 20.09,
-      available: 150000,
-      limit: "5,000 - 100,000",
-      paymentMethods: ["SPEI", "BBVA", "Santander", "Banamex", "Scotiabank"],
+      completionRate: 97.5,
+      orderCount: 432,
+      status: "online",
+      price: "20.49",
+      available: "20,000",
+      limits: "500 - 4,000",
+      paymentMethods: ["OXXO"],
     },
     {
       id: "9",
       trader: "CoronaSwap",
       initials: "CS",
-      completionRate: 96.2,
-      orderCount: 487,
-      status: "Online",
-      price: 20.22,
-      available: 20000,
-      limit: "100 - 3,000",
-      paymentMethods: ["SPEI", "Banco Azteca"],
+      completionRate: 98.8,
+      orderCount: 1654,
+      status: "online",
+      price: "20.44",
+      available: "55,000",
+      limits: "1,000 - 11,000",
+      paymentMethods: ["SPEI", "Banco", "OXXO"],
     },
     {
       id: "10",
       trader: "LocalDesk",
       initials: "LD",
-      completionRate: 98.1,
-      orderCount: 1654,
-      status: "Online",
-      price: 20.14,
-      available: 55000,
-      limit: "700 - 18,000",
-      paymentMethods: ["SPEI", "BBVA", "Banamex", "Scotiabank"],
+      completionRate: 99.3,
+      orderCount: 3012,
+      status: "online",
+      price: "20.42",
+      available: "95,000",
+      limits: "2,000 - 22,000",
+      paymentMethods: ["SPEI", "Banco"],
     },
   ]
 
-  const handleCryptoSelect = (crypto: string) => {
-    setSelectedCrypto(crypto)
-    setShowCryptoModal(false)
-  }
-
   return (
-    <div className="min-h-screen bg-[#F5F5F0] p-4 md:p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="min-h-screen bg-[#F5F5F0]">
+      <TopNavigation />
+
+      <main className="container mx-auto px-4 py-8 max-w-7xl">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-[#0D1004]">P2P Marketplace</h1>
-            <p className="text-[#296253] mt-1">Buy and sell crypto directly with other users</p>
-          </div>
-          <Button className="bg-[#B7DF30] hover:bg-[#a5c929] text-[#0D1004] font-semibold">
-            <TrendingUp className="mr-2 h-4 w-4" />
-            Post Ad
-          </Button>
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-[#0D1004] mb-2">P2P Marketplace - Sell Crypto</h1>
+          <p className="text-[#296253]">Trade directly with other users at competitive rates</p>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="border-[#B3B7A5]/20">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-[#0D1004]">Active Traders</CardTitle>
-              <Users className="h-4 w-4 text-[#296253]" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-[#0D1004]">2,847</div>
-              <p className="text-xs text-[#296253] mt-1">+12% from last week</p>
-            </CardContent>
-          </Card>
-          <Card className="border-[#B3B7A5]/20">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-[#0D1004]">24h Volume</CardTitle>
-              <DollarSign className="h-4 w-4 text-[#296253]" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-[#0D1004]">$1.2M</div>
-              <p className="text-xs text-[#296253] mt-1">Across all pairs</p>
-            </CardContent>
-          </Card>
-          <Card className="border-[#B3B7A5]/20">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-[#0D1004]">Avg. Rate</CardTitle>
-              <TrendingUp className="h-4 w-4 text-[#296253]" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-[#0D1004]">20.15</div>
-              <p className="text-xs text-[#296253] mt-1">MXN per USDT</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Main Trading Interface */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Panel - Trading Form */}
-          <div className="lg:col-span-1">
-            <Card className="border-[#B3B7A5]/20 shadow-lg">
-              <CardHeader className="bg-gradient-to-r from-[#296253] to-[#296253]/80">
-                <CardTitle className="text-white">Sell Crypto</CardTitle>
-              </CardHeader>
-              <CardContent className="pt-6 space-y-6">
-                {/* Crypto Selector */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-[#0D1004]">Cryptocurrency</label>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-between h-12 text-left border-[#B3B7A5]/30 hover:border-[#296253] bg-transparent"
-                    onClick={() => setShowCryptoModal(true)}
-                  >
-                    <span className="font-semibold text-[#0D1004]">{selectedCrypto}</span>
-                    <ChevronDown className="h-4 w-4 text-[#296253]" />
-                  </Button>
-                </div>
-
-                {/* Fiat Selector */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-[#0D1004]">Fiat Currency</label>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-between h-12 text-left border-[#B3B7A5]/30 hover:border-[#296253] bg-transparent"
-                  >
-                    <span className="font-semibold text-[#0D1004]">{selectedFiat}</span>
-                    <ChevronDown className="h-4 w-4 text-[#296253]" />
-                  </Button>
-                </div>
-
-                {/* Amount Input */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-[#0D1004]">Amount</label>
-                  <Input
-                    type="number"
-                    placeholder="Enter amount"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                    className="h-12 border-[#B3B7A5]/30 focus:border-[#296253] text-lg"
+        {/* Filters */}
+        <div className="bg-white rounded-xl shadow-sm p-6 mb-6 border border-[#B3B7A5]/20">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+            {/* Crypto Selection */}
+            <div>
+              <Label className="text-sm font-medium text-[#0D1004] mb-2">Cryptocurrency</Label>
+              <Button
+                variant="outline"
+                className="w-full justify-between border-[#B3B7A5] hover:border-[#296253] bg-transparent"
+                onClick={() => setIsCryptoModalOpen(true)}
+              >
+                <div className="flex items-center gap-2">
+                  <img
+                    src={selectedCrypto.logo || "/placeholder.svg"}
+                    alt={selectedCrypto.name}
+                    className="w-5 h-5 rounded-full"
                   />
+                  <span className="font-semibold">{selectedCrypto.symbol}</span>
                 </div>
+                <ChevronDown className="h-4 w-4" />
+              </Button>
+            </div>
 
-                {/* Payment Methods Filter */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-[#0D1004]">Payment Method</label>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-between h-12 text-left border-[#B3B7A5]/30 hover:border-[#296253] bg-transparent"
-                  >
-                    <span className="text-[#0D1004]">All Payment Methods</span>
-                    <ChevronDown className="h-4 w-4 text-[#296253]" />
-                  </Button>
-                </div>
+            {/* Fiat Selection */}
+            <div>
+              <Label className="text-sm font-medium text-[#0D1004] mb-2">Fiat Currency</Label>
+              <Button
+                variant="outline"
+                className="w-full justify-between border-[#B3B7A5] hover:border-[#296253] bg-transparent"
+              >
+                <span className="font-semibold">{selectedFiat}</span>
+                <ChevronDown className="h-4 w-4" />
+              </Button>
+            </div>
 
-                {/* Search Button */}
-                <Button className="w-full h-12 bg-[#B7DF30] hover:bg-[#a5c929] text-[#0D1004] font-semibold text-lg">
-                  <Search className="mr-2 h-5 w-5" />
-                  Find Offers
-                </Button>
-              </CardContent>
-            </Card>
+            {/* Payment Method */}
+            <div>
+              <Label className="text-sm font-medium text-[#0D1004] mb-2">Payment Method</Label>
+              <Button
+                variant="outline"
+                className="w-full justify-between border-[#B3B7A5] hover:border-[#296253] bg-transparent"
+              >
+                <span>{selectedPayment}</span>
+                <ChevronDown className="h-4 w-4" />
+              </Button>
+            </div>
+
+            {/* Amount */}
+            <div>
+              <Label className="text-sm font-medium text-[#0D1004] mb-2">Amount ({selectedFiat})</Label>
+              <div className="relative">
+                <Input
+                  type="number"
+                  placeholder="Enter amount"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  className="border-[#B3B7A5] focus:border-[#296253]"
+                />
+                <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#B3B7A5]" />
+              </div>
+            </div>
           </div>
 
-          {/* Right Panel - Offers List */}
-          <div className="lg:col-span-2">
-            <Card className="border-[#B3B7A5]/20 shadow-lg">
-              <CardHeader className="border-b border-[#B3B7A5]/20">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-[#0D1004]">Available Offers ({offers.length})</CardTitle>
-                  <Button variant="outline" size="sm" className="border-[#B3B7A5]/30 bg-transparent">
-                    <Filter className="mr-2 h-4 w-4" />
-                    Filters
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="p-0">
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="bg-[#B3B7A5]/10 border-b border-[#B3B7A5]/20">
-                      <tr>
-                        <th className="text-left p-4 text-sm font-semibold text-[#0D1004]">Advertiser</th>
-                        <th className="text-left p-4 text-sm font-semibold text-[#0D1004]">Price</th>
-                        <th className="text-left p-4 text-sm font-semibold text-[#0D1004]">Available</th>
-                        <th className="text-left p-4 text-sm font-semibold text-[#0D1004]">Limit</th>
-                        <th className="text-left p-4 text-sm font-semibold text-[#0D1004]">Payment</th>
-                        <th className="text-left p-4 text-sm font-semibold text-[#0D1004]">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {offers.map((offer) => (
-                        <tr key={offer.id} className="border-b border-[#B3B7A5]/10 hover:bg-[#B3B7A5]/5">
-                          <td className="p-4">
-                            <div className="flex items-center space-x-3">
-                              <Avatar className="h-10 w-10">
-                                <AvatarFallback className="bg-[#296253] text-white font-semibold">
-                                  {offer.initials}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div>
-                                <div className="font-semibold text-[#0D1004]">{offer.trader}</div>
-                                <div className="text-[#296253] text-sm font-medium">
-                                  {offer.completionRate}% • {offer.orderCount} orders • {offer.status}
-                                </div>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="p-4">
-                            <div className="font-semibold text-[#0D1004]">{offer.price.toFixed(2)}</div>
-                            <div className="text-xs text-[#296253]">MXN</div>
-                          </td>
-                          <td className="p-4">
-                            <div className="font-semibold text-[#0D1004]">{offer.available.toLocaleString()}</div>
-                            <div className="text-xs text-[#296253]">{selectedCrypto}</div>
-                          </td>
-                          <td className="p-4">
-                            <div className="text-[#296253] font-medium text-sm">{offer.limit} MXN</div>
-                          </td>
-                          <td className="p-4">
-                            <div className="flex flex-wrap gap-1">
-                              {offer.paymentMethods.slice(0, 2).map((method) => (
-                                <Badge
-                                  key={method}
-                                  variant="outline"
-                                  className="text-xs border-[#296253] text-[#296253]"
-                                >
-                                  {method}
-                                </Badge>
-                              ))}
-                              {offer.paymentMethods.length > 2 && (
-                                <Badge variant="outline" className="text-xs border-[#296253] text-[#296253]">
-                                  +{offer.paymentMethods.length - 2}
-                                </Badge>
-                              )}
-                            </div>
-                          </td>
-                          <td className="p-4">
-                            <Button size="sm" className="bg-[#296253] hover:bg-[#296253]/90 text-white font-semibold">
-                              Sell
-                            </Button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </CardContent>
-            </Card>
+          {/* Additional Filters */}
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" size="sm" className="border-[#B3B7A5] hover:bg-[#B7DF30]/10 bg-transparent">
+              Verified Only
+            </Button>
+            <Button variant="outline" size="sm" className="border-[#B3B7A5] hover:bg-[#B7DF30]/10 bg-transparent">
+              High Completion Rate
+            </Button>
+            <Button variant="outline" size="sm" className="border-[#B3B7A5] hover:bg-[#B7DF30]/10 bg-transparent">
+              Low Fees
+            </Button>
           </div>
         </div>
-      </div>
+
+        {/* Offers Table */}
+        <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-[#B3B7A5]/20">
+          {/* Table Header */}
+          <div className="bg-[#B3B7A5]/10 px-4 py-3 border-b border-[#B3B7A5]/20">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-[#0D1004]">Available Offers ({offers.length})</h2>
+              <Button size="sm" className="bg-[#296253] hover:bg-[#296253]/90 text-white">
+                Refresh Offers
+              </Button>
+            </div>
+          </div>
+
+          {/* Table */}
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-[#F5F5F0] border-b border-[#B3B7A5]/20">
+                <tr>
+                  <th className="text-left p-4 text-sm font-semibold text-[#0D1004]">Advertiser</th>
+                  <th className="text-left p-4 text-sm font-semibold text-[#0D1004]">Price</th>
+                  <th className="text-left p-4 text-sm font-semibold text-[#0D1004]">Available</th>
+                  <th className="text-left p-4 text-sm font-semibold text-[#0D1004]">Limit</th>
+                  <th className="text-left p-4 text-sm font-semibold text-[#0D1004]">Payment</th>
+                  <th className="text-right p-4 text-sm font-semibold text-[#0D1004]">Trade</th>
+                </tr>
+              </thead>
+              <tbody>
+                {offers.map((offer) => (
+                  <tr key={offer.id} className="border-b border-[#B3B7A5]/10 hover:bg-[#B7DF30]/5 transition-colors">
+                    {/* Advertiser */}
+                    <td className="p-4">
+                      <div className="flex items-center space-x-3">
+                        <Avatar className="h-10 w-10">
+                          <AvatarFallback className="bg-[#296253] text-white font-semibold">
+                            {offer.initials}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <div className="font-semibold text-[#0D1004]">{offer.trader}</div>
+                          <div className="text-[#296253] text-sm font-medium">
+                            {offer.completionRate}% • {offer.orderCount} orders • {offer.status}
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+
+                    {/* Price */}
+                    <td className="p-4">
+                      <div className="font-semibold text-[#0D1004]">
+                        {offer.price} {selectedFiat}
+                      </div>
+                      <div className="text-xs text-[#B3B7A5]">per {selectedCrypto.symbol}</div>
+                    </td>
+
+                    {/* Available */}
+                    <td className="p-4">
+                      <div className="font-medium text-[#0D1004]">
+                        {offer.available} {selectedCrypto.symbol}
+                      </div>
+                    </td>
+
+                    {/* Limit */}
+                    <td className="p-4">
+                      <div className="text-[#296253] font-medium text-sm">
+                        {offer.limits} {selectedFiat}
+                      </div>
+                    </td>
+
+                    {/* Payment Methods */}
+                    <td className="p-4">
+                      <div className="flex flex-wrap gap-1">
+                        {offer.paymentMethods.map((method) => (
+                          <span
+                            key={method}
+                            className="px-2 py-1 bg-[#B7DF30]/20 text-[#296253] text-xs rounded-md font-medium"
+                          >
+                            {method}
+                          </span>
+                        ))}
+                      </div>
+                    </td>
+
+                    {/* Trade Button */}
+                    <td className="p-4 text-right">
+                      <Button className="bg-[#B7DF30] hover:bg-[#B7DF30]/90 text-[#0D1004] font-semibold">
+                        Sell {selectedCrypto.symbol}
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Info Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+          <div className="bg-white rounded-lg p-6 shadow-sm border border-[#B3B7A5]/20">
+            <h3 className="font-semibold text-[#0D1004] mb-2">Secure Trading</h3>
+            <p className="text-sm text-[#296253]">
+              All trades are protected with escrow service and dispute resolution
+            </p>
+          </div>
+          <div className="bg-white rounded-lg p-6 shadow-sm border border-[#B3B7A5]/20">
+            <h3 className="font-semibold text-[#0D1004] mb-2">Instant Settlement</h3>
+            <p className="text-sm text-[#296253]">Fast payment confirmation and crypto release within minutes</p>
+          </div>
+          <div className="bg-white rounded-lg p-6 shadow-sm border border-[#B3B7A5]/20">
+            <h3 className="font-semibold text-[#0D1004] mb-2">24/7 Support</h3>
+            <p className="text-sm text-[#296253]">Customer support available around the clock for any issues</p>
+          </div>
+        </div>
+      </main>
 
       {/* Crypto Selector Modal */}
       <CryptoSelectorModal
-        isOpen={showCryptoModal}
-        onClose={() => setShowCryptoModal(false)}
-        onSelect={handleCryptoSelect}
-        selectedCrypto={selectedCrypto}
+        isOpen={isCryptoModalOpen}
+        onClose={() => setIsCryptoModalOpen(false)}
+        onSelect={(crypto) => {
+          setSelectedCrypto(crypto)
+          setIsCryptoModalOpen(false)
+        }}
+        selectedSymbol={selectedCrypto.symbol}
       />
     </div>
   )

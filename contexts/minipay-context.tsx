@@ -8,9 +8,9 @@ import { STABLECOIN_CONTRACTS } from "@/lib/token-contracts"
 interface MiniPayContextType {
   isConnected: boolean
   account: string | null
-  provider: ethers.providers.Web3Provider | null
+  provider: ethers.BrowserProvider | null
   isMiniPayBrowser: boolean
-  tokenBalances: Record<string, ethers.BigNumber>
+  tokenBalances: Record<string, bigint>
   refreshBalances: () => Promise<void>
 }
 
@@ -32,9 +32,9 @@ interface MiniPayProviderProps {
 export function MiniPayProvider({ children }: MiniPayProviderProps) {
   const [isConnected, setIsConnected] = useState(false)
   const [account, setAccount] = useState<string | null>(null)
-  const [provider, setProvider] = useState<ethers.providers.Web3Provider | null>(null)
+  const [provider, setProvider] = useState<ethers.BrowserProvider | null>(null)
   const [isMiniPayBrowser, setIsMiniPayBrowser] = useState(false)
-  const [tokenBalances, setTokenBalances] = useState<Record<string, ethers.BigNumber>>({})
+  const [tokenBalances, setTokenBalances] = useState<Record<string, bigint>>({})
 
   useEffect(() => {
     const init = async () => {
@@ -42,9 +42,9 @@ export function MiniPayProvider({ children }: MiniPayProviderProps) {
       const miniPayDetected = isMiniPay()
       setIsMiniPayBrowser(miniPayDetected)
 
-      if (miniPayDetected) {
+      if (miniPayDetected && window.ethereum) {
         // Get provider
-        const provider = new ethers.providers.Web3Provider(window.ethereum)
+        const provider = new ethers.BrowserProvider(window.ethereum)
         setProvider(provider)
 
         try {
@@ -52,8 +52,8 @@ export function MiniPayProvider({ children }: MiniPayProviderProps) {
           await provider.send("eth_requestAccounts", [])
 
           // Get connected account
-          const accounts = await provider.listAccounts()
-          const connectedAccount = accounts[0]
+          const signer = await provider.getSigner()
+          const connectedAccount = await signer.getAddress()
 
           if (connectedAccount) {
             setAccount(connectedAccount)
@@ -72,36 +72,34 @@ export function MiniPayProvider({ children }: MiniPayProviderProps) {
 
     // Setup account change listener
     if (window.ethereum) {
-      window.ethereum.on("accountsChanged", (accounts: string[]) => {
+      const handleAccountsChanged = async (accounts: string[]) => {
         if (accounts.length > 0) {
           setAccount(accounts[0])
           setIsConnected(true)
-          refreshBalances(provider, accounts[0])
+          if (provider) {
+            await refreshBalances(provider, accounts[0])
+          }
         } else {
           setAccount(null)
           setIsConnected(false)
         }
-      })
-    }
+      }
 
-    return () => {
-      // Clean up listeners
-      if (window.ethereum) {
-        window.ethereum.removeAllListeners("accountsChanged")
+      window.ethereum.on("accountsChanged", handleAccountsChanged)
+
+      return () => {
+        window.ethereum?.removeListener("accountsChanged", handleAccountsChanged)
       }
     }
   }, [])
 
-  const refreshBalances = async (
-    currentProvider?: ethers.providers.Web3Provider | null,
-    currentAccount?: string | null,
-  ) => {
+  const refreshBalances = async (currentProvider?: ethers.BrowserProvider | null, currentAccount?: string | null) => {
     const providerToUse = currentProvider || provider
     const accountToUse = currentAccount || account
 
     if (!providerToUse || !accountToUse) return
 
-    const balances: Record<string, ethers.BigNumber> = {}
+    const balances: Record<string, bigint> = {}
 
     // Get balances for active stablecoins
     for (const [symbol, token] of Object.entries(STABLECOIN_CONTRACTS)) {

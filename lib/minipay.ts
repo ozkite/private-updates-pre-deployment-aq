@@ -10,13 +10,13 @@ export function isMiniPay(): boolean {
 }
 
 // Get provider from MiniPay
-export function getMiniPayProvider(): ethers.providers.Web3Provider | null {
+export function getMiniPayProvider(): ethers.BrowserProvider | null {
   if (!isMiniPay()) return null
-  return new ethers.providers.Web3Provider(window.ethereum)
+  return new ethers.BrowserProvider(window.ethereum)
 }
 
 // Get signer from MiniPay
-export function getMiniPaySigner(): ethers.Signer | null {
+export async function getMiniPaySigner(): Promise<ethers.Signer | null> {
   const provider = getMiniPayProvider()
   if (!provider) return null
   return provider.getSigner()
@@ -29,7 +29,7 @@ export async function getConnectedAccount(): Promise<string | null> {
     if (!provider) return null
 
     const accounts = await provider.listAccounts()
-    return accounts[0] || null
+    return accounts[0]?.address || null
   } catch (error) {
     console.error("Error getting connected account:", error)
     return null
@@ -39,28 +39,28 @@ export async function getConnectedAccount(): Promise<string | null> {
 // Create transaction with fee currency
 export function createTransaction(
   to: string,
-  value: string | ethers.BigNumber,
+  value: string | bigint,
   data = "0x",
   feeCurrency: string = DEFAULT_FEE_CURRENCY,
-): ethers.providers.TransactionRequest {
+): ethers.TransactionRequest {
   return {
     to,
     value,
     data,
     feeCurrency,
-    gas: 200000, // Default gas limit
-  }
+    gasLimit: 200000, // Default gas limit
+  } as ethers.TransactionRequest
 }
 
 // Send transaction with fee abstraction
 export async function sendTransaction(
   to: string,
-  value: string | ethers.BigNumber,
+  value: string | bigint,
   data = "0x",
   feeCurrency: string = DEFAULT_FEE_CURRENCY,
-): Promise<ethers.providers.TransactionResponse | null> {
+): Promise<ethers.TransactionResponse | null> {
   try {
-    const signer = getMiniPaySigner()
+    const signer = await getMiniPaySigner()
     if (!signer) throw new Error("MiniPay signer not available")
 
     const tx = createTransaction(to, value, data, feeCurrency)
@@ -75,11 +75,11 @@ export async function sendTransaction(
 export async function sendToken(
   tokenAddress: string,
   to: string,
-  amount: string | ethers.BigNumber,
+  amount: string | bigint,
   feeCurrency: string = DEFAULT_FEE_CURRENCY,
-): Promise<ethers.providers.TransactionResponse | null> {
+): Promise<ethers.TransactionResponse | null> {
   try {
-    const signer = getMiniPaySigner()
+    const signer = await getMiniPaySigner()
     if (!signer) throw new Error("MiniPay signer not available")
 
     // ERC20 transfer function signature
@@ -90,9 +90,9 @@ export async function sendToken(
     )
 
     // Create transaction with fee currency
-    const tx = await tokenContract.populateTransaction.transfer(to, amount)
+    const tx = await tokenContract.transfer.populateTransaction(to, amount)
     tx.feeCurrency = feeCurrency
-    tx.gas = 200000
+    tx.gasLimit = 200000
 
     return await signer.sendTransaction(tx)
   } catch (error) {
@@ -102,7 +102,7 @@ export async function sendToken(
 }
 
 // Get token balance
-export async function getTokenBalance(tokenAddress: string, address?: string): Promise<ethers.BigNumber | null> {
+export async function getTokenBalance(tokenAddress: string, address?: string): Promise<bigint | null> {
   try {
     const provider = getMiniPayProvider()
     if (!provider) throw new Error("MiniPay provider not available")
