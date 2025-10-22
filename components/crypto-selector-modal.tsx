@@ -1,18 +1,20 @@
 "use client"
 
 import { useState } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { Search, Check } from "lucide-react"
+import { Search, CheckCircle2 } from "lucide-react"
 import Image from "next/image"
 
 interface CryptoSelectorModalProps {
+  isOpen: boolean
+  onClose: () => void
   selectedCrypto: string
   onSelectCrypto: (crypto: string) => void
 }
 
-const cryptoData = [
+// Complete cryptocurrency data with real logos
+const cryptocurrencies = [
   {
     symbol: "BTC",
     name: "Bitcoin",
@@ -250,81 +252,73 @@ const cryptoData = [
   },
 ]
 
-export function CryptoSelectorModal({ selectedCrypto, onSelectCrypto }: CryptoSelectorModalProps) {
+export function CryptoSelectorModal({ isOpen, onClose, selectedCrypto, onSelectCrypto }: CryptoSelectorModalProps) {
   const [searchTerm, setSearchTerm] = useState("")
-  const [isOpen, setIsOpen] = useState(false)
 
-  const filteredCryptos = cryptoData.filter(
+  const filteredCryptos = cryptocurrencies.filter(
     (crypto) =>
       crypto.symbol.toLowerCase().includes(searchTerm.toLowerCase()) ||
       crypto.name.toLowerCase().includes(searchTerm.toLowerCase()),
   )
 
-  const handleSelect = (symbol: string) => {
-    onSelectCrypto(symbol)
-    setIsOpen(false)
-  }
-
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button
-          variant="outline"
-          size="default"
-          className="border-[#296253] text-[#296253] hover:bg-[#296253] hover:text-white bg-transparent px-4 py-2"
-        >
-          See all Crypto
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="max-w-md max-h-[600px] overflow-hidden">
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-md max-h-[80vh] overflow-hidden flex flex-col">
         <DialogHeader>
-          <DialogTitle className="text-[#0D1004]">Select Cryptocurrency</DialogTitle>
+          <DialogTitle className="text-xl font-bold">Select Cryptocurrency</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input
-              placeholder="Search cryptocurrencies..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 border-[#296253] focus:border-[#B7DF30]"
-            />
-          </div>
-
-          <div className="max-h-[400px] overflow-y-auto space-y-2">
-            {filteredCryptos.map((crypto) => (
-              <div
-                key={crypto.symbol}
-                onClick={() => handleSelect(crypto.symbol)}
-                className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${
-                  selectedCrypto === crypto.symbol ? "bg-[#B7DF30] text-[#0D1004]" : "hover:bg-[#EDF0E3]"
-                }`}
-              >
-                <div className="flex items-center space-x-3">
-                  <div className="relative w-8 h-8">
-                    <Image
-                      src={crypto.logo || "/placeholder.svg"}
-                      alt={crypto.name}
-                      width={32}
-                      height={32}
-                      className="rounded-full"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement
-                        target.src = "/crypto-digital-landscape.png"
-                      }}
-                    />
-                  </div>
-                  <div>
-                    <div className="font-semibold text-[#0D1004]">{crypto.symbol}</div>
-                    <div className="text-sm text-gray-600">{crypto.name}</div>
-                  </div>
-                </div>
-                {selectedCrypto === crypto.symbol && <Check className="h-5 w-5 text-[#296253]" />}
-              </div>
-            ))}
-          </div>
+        {/* Search Bar */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Input
+            placeholder="Search cryptocurrencies..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10 rounded-xl"
+          />
         </div>
+
+        {/* Crypto List */}
+        <div className="flex-1 overflow-y-auto space-y-1 pr-2">
+          {filteredCryptos.map((crypto) => (
+            <button
+              key={crypto.symbol}
+              onClick={() => onSelectCrypto(crypto.symbol)}
+              className={`w-full flex items-center justify-between p-3 rounded-lg transition-colors ${
+                selectedCrypto === crypto.symbol
+                  ? "bg-[#B7DF30]/20 border-2 border-[#B7DF30]"
+                  : "hover:bg-gray-100 border-2 border-transparent"
+              }`}
+            >
+              <div className="flex items-center space-x-3">
+                <div className="relative w-8 h-8 flex-shrink-0">
+                  <Image
+                    src={crypto.logo || "/placeholder.svg"}
+                    alt={crypto.name}
+                    width={32}
+                    height={32}
+                    className="rounded-full"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement
+                      target.style.display = "none"
+                    }}
+                  />
+                </div>
+                <div className="text-left">
+                  <div className="font-semibold text-[#0D1004]">{crypto.symbol}</div>
+                  <div className="text-sm text-gray-500">{crypto.name}</div>
+                </div>
+              </div>
+              {selectedCrypto === crypto.symbol && <CheckCircle2 className="h-5 w-5 text-[#296253]" />}
+            </button>
+          ))}
+        </div>
+
+        {/* Empty State */}
+        {filteredCryptos.length === 0 && (
+          <div className="text-center py-8 text-gray-500">No cryptocurrencies found.</div>
+        )}
       </DialogContent>
     </Dialog>
   )
