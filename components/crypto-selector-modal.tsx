@@ -1,19 +1,19 @@
 "use client"
 
 import { useState } from "react"
+import { Search } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { Search, CheckCircle2 } from "lucide-react"
-import Image from "next/image"
+import { Button } from "@/components/ui/button"
+import { ScrollArea } from "@/components/ui/scroll-area"
 
 interface CryptoSelectorModalProps {
   isOpen: boolean
   onClose: () => void
+  onSelect: (crypto: string) => void
   selectedCrypto: string
-  onSelectCrypto: (crypto: string) => void
 }
 
-// Complete cryptocurrency data with real logos
 const cryptocurrencies = [
   {
     symbol: "BTC",
@@ -99,11 +99,6 @@ const cryptocurrencies = [
     symbol: "UNI",
     name: "Uniswap",
     logo: "https://cryptologos.cc/logos/uniswap-uni-logo.png",
-  },
-  {
-    symbol: "LTC",
-    name: "Litecoin",
-    logo: "https://cryptologos.cc/logos/litecoin-ltc-logo.png",
   },
   {
     symbol: "BCH",
@@ -252,73 +247,66 @@ const cryptocurrencies = [
   },
 ]
 
-export function CryptoSelectorModal({ isOpen, onClose, selectedCrypto, onSelectCrypto }: CryptoSelectorModalProps) {
-  const [searchTerm, setSearchTerm] = useState("")
+export function CryptoSelectorModal({ isOpen, onClose, onSelect, selectedCrypto }: CryptoSelectorModalProps) {
+  const [searchQuery, setSearchQuery] = useState("")
 
   const filteredCryptos = cryptocurrencies.filter(
     (crypto) =>
-      crypto.symbol.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      crypto.name.toLowerCase().includes(searchTerm.toLowerCase()),
+      crypto.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      crypto.name.toLowerCase().includes(searchQuery.toLowerCase()),
   )
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md max-h-[80vh] overflow-hidden flex flex-col">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-bold">Select Cryptocurrency</DialogTitle>
+      <DialogContent className="max-w-md max-h-[80vh] p-0">
+        <DialogHeader className="p-6 pb-4 border-b border-[#B3B7A5]/20">
+          <DialogTitle className="text-[#0D1004]">Select Cryptocurrency</DialogTitle>
         </DialogHeader>
 
-        {/* Search Bar */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-          <Input
-            placeholder="Search cryptocurrencies..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 rounded-xl"
-          />
+        {/* Search Input */}
+        <div className="px-6 pb-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[#296253]" />
+            <Input
+              placeholder="Search cryptocurrencies..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 border-[#B3B7A5]/30 focus:border-[#296253]"
+            />
+          </div>
         </div>
 
         {/* Crypto List */}
-        <div className="flex-1 overflow-y-auto space-y-1 pr-2">
-          {filteredCryptos.map((crypto) => (
-            <button
-              key={crypto.symbol}
-              onClick={() => onSelectCrypto(crypto.symbol)}
-              className={`w-full flex items-center justify-between p-3 rounded-lg transition-colors ${
-                selectedCrypto === crypto.symbol
-                  ? "bg-[#B7DF30]/20 border-2 border-[#B7DF30]"
-                  : "hover:bg-gray-100 border-2 border-transparent"
-              }`}
-            >
-              <div className="flex items-center space-x-3">
-                <div className="relative w-8 h-8 flex-shrink-0">
-                  <Image
+        <ScrollArea className="h-[400px] px-6">
+          <div className="space-y-2 pb-6">
+            {filteredCryptos.map((crypto) => (
+              <Button
+                key={crypto.symbol}
+                variant="ghost"
+                className={`w-full justify-start h-auto py-3 px-4 hover:bg-[#B3B7A5]/10 ${
+                  selectedCrypto === crypto.symbol ? "bg-[#B7DF30]/20 border border-[#B7DF30]" : ""
+                }`}
+                onClick={() => onSelect(crypto.symbol)}
+              >
+                <div className="flex items-center space-x-3 w-full">
+                  <img
                     src={crypto.logo || "/placeholder.svg"}
                     alt={crypto.name}
-                    width={32}
-                    height={32}
-                    className="rounded-full"
+                    className="w-8 h-8 rounded-full object-cover"
                     onError={(e) => {
-                      const target = e.target as HTMLImageElement
-                      target.style.display = "none"
+                      e.currentTarget.style.display = "none"
                     }}
                   />
+                  <div className="flex-1 text-left">
+                    <div className="font-semibold text-[#0D1004]">{crypto.symbol}</div>
+                    <div className="text-sm text-[#296253]">{crypto.name}</div>
+                  </div>
+                  {selectedCrypto === crypto.symbol && <div className="w-2 h-2 rounded-full bg-[#B7DF30]"></div>}
                 </div>
-                <div className="text-left">
-                  <div className="font-semibold text-[#0D1004]">{crypto.symbol}</div>
-                  <div className="text-sm text-gray-500">{crypto.name}</div>
-                </div>
-              </div>
-              {selectedCrypto === crypto.symbol && <CheckCircle2 className="h-5 w-5 text-[#296253]" />}
-            </button>
-          ))}
-        </div>
-
-        {/* Empty State */}
-        {filteredCryptos.length === 0 && (
-          <div className="text-center py-8 text-gray-500">No cryptocurrencies found.</div>
-        )}
+              </Button>
+            ))}
+          </div>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   )
